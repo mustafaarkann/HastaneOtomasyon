@@ -48,7 +48,7 @@ namespace Hastane.Web.Controllers
                     ViewBag.Hata = "Bu TC Kimlik numarası ile sistemde zaten kayıtlı bir kişi var! Aynı TC ile yeni kayıt açılamaz.";
                     return View(hasta); // Formu hata mesajıyla geri döndür
                 }
-                // ---------------------------------------
+                // ---------------------------------------   
 
                 _hastaService.HastaEkle(hasta);
                 return RedirectToAction("Index");
