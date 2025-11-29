@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">Hoşgeldiniz, @User.Identity.Name</h2>
+
+    @if (User.IsInRole("Sekreter"))
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3 shadow">
+                    <div class="card-header">Toplam Hasta</div>
+                    <div class="card-body">
+                        <h1 class="card-title text-center"><i class="fa-solid fa-users me-2"></i> @ViewBag.ToplamHasta</h1>
+                        <p class="card-text text-end">Kayıtlı kişi sayısı</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3 shadow">
+                    <div class="card-header">Bugünkü Randevular</div>
+                    <div class="card-body">
+                        <h1 class="card-title text-center"><i class="fa-solid fa-calendar-day me-2"></i> @ViewBag.BugunkuRandevu</h1>
+                        <p class="card-text text-end">Bekleyen ve tamamlanan</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-white bg-danger mb-3 shadow">
+                    <div class="card-header">Boş Yatak Durumu</div>
+                    <div class="card-body">
+                        <h1 class="card-title text-center"><i class="fa-solid fa-bed me-2"></i> @ViewBag.BosYatak</h1>
+                        <p class="card-text text-end">Anlık müsait yatak</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <h4><i class="fa-solid fa-info-circle"></i> Hızlı İşlemler</h4>
+            <p>Sol menüyü kullanarak yeni hasta ekleyebilir veya randevu oluşturabilirsiniz.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body">
+                <h3>Sistem Durumu</h3>
+                <p>Şu an sisteme başarılı bir şekilde giriş yaptınız. Yetkinize uygun işlemleri sol menüden seçebilirsiniz.</p>
+            </div>
+        </div>
+    }
+</div>

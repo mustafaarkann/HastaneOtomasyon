@@ -1,0 +1,314 @@
+
+-- 1. BÖLÜM: TABLOLAR VE KALITIM YAPISI (15 TABLO)
+-- -------------------------------------------------------------
+
+-- [TABLO 1] KISILER (ANA TABLO / PARENT)
+-- Kalıtım (Inheritance) yapısının temelidir. Ortak alanlar burada tutulur.
+CREATE TABLE Kisiler (
+    kisi_id SERIAL PRIMARY KEY,
+    tc_no VARCHAR(11) UNIQUE NOT NULL,
+    ad VARCHAR(50) NOT NULL,
+    soyad VARCHAR(50) NOT NULL,
+    telefon VARCHAR(15),
+    cinsiyet VARCHAR(5),
+    dogum_yeri VARCHAR(50),
+    sifre VARCHAR(50) NOT NULL,
+    kullanici_turu VARCHAR(20) -- 'Hasta', 'Doktor', 'Sekreter'
+);
+
+-- [TABLO 2] DOKTORLAR (CHILD)
+-- Kisiler tablosundan türetilmiştir.
+CREATE TABLE Doktorlar (
+    uzmanlik_alani VARCHAR(50),
+    diploma_no VARCHAR(20)
+) INHERITS (Kisiler);
+
+-- [TABLO 3] HASTALAR (CHILD)
+-- Kisiler tablosundan türetilmiştir.
+CREATE TABLE Hastalar (
+    kan_grubu VARCHAR(10),
+    sosyal_guvence VARCHAR(50),
+    boy INT,
+    kilo INT
+) INHERITS (Kisiler);
+
+-- [TABLO 4] PERSONELLER (CHILD)
+-- Kisiler tablosundan türetilmiştir.
+CREATE TABLE Personeller (
+    maas DECIMAL(10,2),
+    gorev VARCHAR(50),
+    departman_id INT
+) INHERITS (Kisiler);
+
+-- [TABLO 5] POLIKLINIKLER
+CREATE TABLE Poliklinikler (
+    poliklinik_id SERIAL PRIMARY KEY,
+    poliklinik_adi VARCHAR(50),
+    bina_no VARCHAR(10),
+    kat_no INT
+);
+
+-- [TABLO 6] RANDEVU DURUMLARI (Lookup Table)
+CREATE TABLE RandevuDurumlari (
+    durum_id SERIAL PRIMARY KEY,
+    durum_adi VARCHAR(20) -- 1: Bekliyor, 2: Onaylandı, 3: İptal, 4: Tamamlandı
+);
+
+-- [TABLO 7] RANDEVULAR
+CREATE TABLE Randevular (
+    randevu_id SERIAL PRIMARY KEY,
+    hasta_tc VARCHAR(11),
+    doktor_id INT, 
+    poliklinik_id INT REFERENCES Poliklinikler(poliklinik_id),
+    durum_id INT REFERENCES RandevuDurumlari(durum_id),
+    randevu_tarihi DATE NOT NULL,
+    randevu_saati TIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- [TABLO 8] MUAYENELER
+CREATE TABLE Muayeneler (
+    muayene_id SERIAL PRIMARY KEY,
+    randevu_id INT REFERENCES Randevular(randevu_id),
+    teshis TEXT,
+    doktor_notu TEXT,
+    recete_no VARCHAR(20)
+);
+
+-- [TABLO 9] ISLEMLER (Fiyat Listesi)
+CREATE TABLE Islemler (
+    islem_id SERIAL PRIMARY KEY,
+    islem_adi VARCHAR(100),
+    ucret DECIMAL(10,2)
+);
+
+-- [TABLO 10] HASTA ISLEMLERI (Hastaya uygulanan işlemler)
+CREATE TABLE HastaIslemleri (
+    id SERIAL PRIMARY KEY,
+    muayene_id INT REFERENCES Muayeneler(muayene_id),
+    islem_id INT REFERENCES Islemler(islem_id),
+    adet INT DEFAULT 1,
+    islem_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- [TABLO 11] KASA HAREKETLERI (Otomatik Dolar)
+CREATE TABLE KasaHareketleri (
+    hareket_id SERIAL PRIMARY KEY,
+    tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tutar DECIMAL(10,2),
+    turu VARCHAR(10), -- 'Gelir' veya 'Gider'
+    aciklama VARCHAR(255)
+);
+
+-- [TABLO 12] ODALAR
+CREATE TABLE Odalar (
+    oda_id SERIAL PRIMARY KEY,
+    oda_numarasi VARCHAR(10),
+    kat INT,
+    kapasite INT
+);
+
+-- [TABLO 13] YATAKLAR
+CREATE TABLE Yataklar (
+    yatak_id SERIAL PRIMARY KEY,
+    oda_id INT REFERENCES Odalar(oda_id),
+    yatak_no VARCHAR(10),
+    dolu_mu BOOLEAN DEFAULT FALSE
+);
+
+-- [TABLO 14] YATISLAR
+CREATE TABLE Yatislar (
+    yatis_id SERIAL PRIMARY KEY,
+    hasta_tc VARCHAR(11),
+    yatak_id INT REFERENCES Yataklar(yatak_id),
+    giris_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    cikis_tarihi TIMESTAMP
+);
+
+-- [TABLO 15] ISLEM LOGLARI (Audit)
+CREATE TABLE IslemLoglari (
+    log_id SERIAL PRIMARY KEY,
+    log_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    islem_turu VARCHAR(50),
+    aciklama TEXT,
+    kullanici_tc VARCHAR(11)
+);
+
+
+-- -------------------------------------------------------------
+-- 2. BÖLÜM: TETİKLEYİCİLER (TRIGGERS)
+-- -------------------------------------------------------------
+
+-- TRIGGER 1: Hafta Sonu Randevu Engelleyici
+-- Randevu tarihi Cumartesi veya Pazar ise kaydı engeller.
+CREATE OR REPLACE FUNCTION fn_HaftaSonuEngel() RETURNS TRIGGER AS $$
+BEGIN
+    IF EXTRACT(ISODOW FROM NEW.randevu_tarihi) IN (6, 7) THEN
+        RAISE EXCEPTION 'Hafta sonu (Cumartesi/Pazar) randevu alınamaz!';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_HaftaSonuEngel
+BEFORE INSERT ON Randevular
+FOR EACH ROW EXECUTE FUNCTION fn_HaftaSonuEngel();
+
+
+-- TRIGGER 2: Doktor Kota Kontrolü
+-- Bir doktorun günlük randevu sayısı 20'yi aşamaz.
+CREATE OR REPLACE FUNCTION fn_KotaKontrol() RETURNS TRIGGER AS $$
+DECLARE
+    sayi INT;
+BEGIN
+    SELECT COUNT(*) INTO sayi FROM Randevular 
+    WHERE doktor_id = NEW.doktor_id AND randevu_tarihi = NEW.randevu_tarihi;
+    
+    IF sayi >= 20 THEN
+        RAISE EXCEPTION 'Bu doktorun günlük kotası (20 hasta) dolmuştur!';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_KotaKontrol
+BEFORE INSERT ON Randevular
+FOR EACH ROW EXECUTE FUNCTION fn_KotaKontrol();
+
+
+-- TRIGGER 3: Aynı Gün Mükerrer Randevu Engelleyici
+-- Bir hasta aynı gün içinde ikinci bir randevu alamaz.
+CREATE OR REPLACE FUNCTION fn_AyniGunRandevuEngel() RETURNS TRIGGER AS $$
+DECLARE
+    kayit_var_mi INT;
+BEGIN
+    SELECT COUNT(*) INTO kayit_var_mi FROM Randevular
+    WHERE hasta_tc = NEW.hasta_tc AND randevu_tarihi = NEW.randevu_tarihi AND durum_id != 3;
+
+    IF kayit_var_mi > 0 THEN
+        RAISE EXCEPTION 'Bu hastanın seçilen tarihte zaten aktif bir randevusu var!';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_AyniGunRandevuEngel
+BEFORE INSERT ON Randevular
+FOR EACH ROW EXECUTE FUNCTION fn_AyniGunRandevuEngel();
+
+
+-- TRIGGER 4: Yatak Durumu Güncelleme
+-- Yatış yapıldığında yatağı 'Dolu', taburcu olduğunda 'Boş' yapar.
+CREATE OR REPLACE FUNCTION fn_YatakDurumGuncelle() RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        UPDATE Yataklar SET dolu_mu = TRUE WHERE yatak_id = NEW.yatak_id;
+    ELSIF (TG_OP = 'UPDATE' AND NEW.cikis_tarihi IS NOT NULL) THEN
+        UPDATE Yataklar SET dolu_mu = FALSE WHERE yatak_id = NEW.yatak_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_YatakDurumGuncelle
+AFTER INSERT OR UPDATE ON Yatislar
+FOR EACH ROW EXECUTE FUNCTION fn_YatakDurumGuncelle();
+
+
+-- TRIGGER 5: Ücret Yansıtma (Otomatik Gelir)
+-- Yapılan işlemlerin ücretini otomatik olarak Kasaya ekler.
+CREATE OR REPLACE FUNCTION fn_UcretYansit() RETURNS TRIGGER AS $$
+DECLARE
+    islem_ucreti DECIMAL(10,2);
+    islem_ismi VARCHAR(100);
+BEGIN
+    SELECT ucret, islem_adi INTO islem_ucreti, islem_ismi FROM Islemler WHERE islem_id = NEW.islem_id;
+    
+    INSERT INTO KasaHareketleri (tutar, turu, aciklama) 
+    VALUES (islem_ucreti, 'Gelir', islem_ismi || ' işlemi uygulandı.');
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_UcretYansit
+AFTER INSERT ON HastaIslemleri
+FOR EACH ROW EXECUTE FUNCTION fn_UcretYansit();
+
+
+-- -------------------------------------------------------------
+-- 3. BÖLÜM: SAKLI YORDAMLAR (STORED PROCEDURES)
+-- -------------------------------------------------------------
+
+-- PROC 1: Boş Yatakları Listele
+CREATE OR REPLACE FUNCTION sp_BosYataklariGetir()
+RETURNS TABLE (yatak_id INT, oda_numarasi VARCHAR, yatak_no VARCHAR) AS $$
+BEGIN
+    RETURN QUERY 
+    SELECT y.yatak_id, o.oda_numarasi, y.yatak_no
+    FROM Yataklar y
+    JOIN Odalar o ON y.oda_id = o.oda_id
+    WHERE y.dolu_mu = FALSE
+    ORDER BY o.oda_numarasi, y.yatak_no;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- PROC 2: Hasta Taburcu Et
+-- Hastanın çıkış tarihini günceller (Trigger tetiklenir ve yatak boşalır).
+CREATE OR REPLACE FUNCTION sp_HastaTaburcuEt(p_yatis_id INT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE Yatislar 
+    SET cikis_tarihi = CURRENT_TIMESTAMP 
+    WHERE yatis_id = p_yatis_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- PROC 3: Randevu Onayla
+-- Sekreterin randevuyu 'Onaylandı' (2) durumuna çekmesini sağlar.
+CREATE OR REPLACE FUNCTION sp_RandevuOnayla(p_randevu_id INT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE Randevular 
+    SET durum_id = 2 
+    WHERE randevu_id = p_randevu_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- PROC 4: Randevu İptal Et
+-- Randevuyu silmeden durumunu 'İptal' (3) yapar ve log tutar.
+CREATE OR REPLACE FUNCTION sp_RandevuIptal(p_randevu_id INT, p_iptal_nedeni TEXT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE Randevular SET durum_id = 3 WHERE randevu_id = p_randevu_id;
+    
+    INSERT INTO IslemLoglari (islem_turu, aciklama) 
+    VALUES ('Randevu İptali', 'Randevu No: ' || p_randevu_id || ' Nedeni: ' || p_iptal_nedeni);
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- -------------------------------------------------------------
+-- 4. BÖLÜM: BAŞLANGIÇ VERİLERİ (SEED DATA)
+-- -------------------------------------------------------------
+
+INSERT INTO RandevuDurumlari (durum_id, durum_adi) VALUES (1, 'Bekliyor'), (2, 'Onaylandı'), (3, 'İptal'), (4, 'Tamamlandı');
+
+INSERT INTO Poliklinikler (poliklinik_adi, bina_no, kat_no) VALUES 
+('Dahiliye', 'A Blok', 1), ('Kardiyoloji', 'A Blok', 2),
+('Göz Hastalıkları', 'B Blok', 1), ('KBB', 'B Blok', 2),
+('Acil Servis', 'C Blok', 0), ('Genel Cerrahi', 'A Blok', 3);
+
+INSERT INTO Islemler (islem_adi, ucret) VALUES 
+('Muayene Ücreti', 400.00), ('Kan Tahlili', 150.00),
+('MR Çekimi', 1500.00), ('Röntgen', 300.00), ('EKG', 250.00);
+
+INSERT INTO Odalar (oda_numarasi, kat, kapasite) VALUES ('101', 1, 2), ('102', 1, 2), ('201', 2, 1);
+INSERT INTO Yataklar (oda_id, yatak_no) VALUES (1, 'Yatak-1'), (1, 'Yatak-2'), (2, 'Yatak-1'), (2, 'Yatak-2'), (3, 'Yatak-1');
+
+-- YÖNETİCİ GİRİŞİ İÇİN SEKRETER
+INSERT INTO Personeller (tc_no, ad, soyad, telefon, cinsiyet, sifre, kullanici_turu, maas, gorev, departman_id)
+VALUES ('11111111111', 'Yönetici', 'Sekreter', '5551112233', 'K', '123', 'Sekreter', 25000.00, 'Yönetim', 1);

@@ -1,0 +1,41 @@
+﻿@model Hastane.DataAccess.Models.Yatislar
+
+<div class="d-flex justify-content-center mt-5">
+    <div class="card shadow" style="width: 500px;">
+        <div class="card-header bg-success text-white">
+            <h4><i class="fa-solid fa-bed-pulse me-2"></i>Hasta Yatış İşlemi</h4>
+        </div>
+        <div class="card-body">
+
+            @if (ViewBag.Hata != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Hata</div>
+            }
+
+            <div class="alert alert-info text-center fw-bold">
+                <i class="fa-solid fa-door-open"></i> @ViewBag.YatakBilgisi
+            </div>
+
+            <form method="post">
+                <input type="hidden" name="YatakId" value="@ViewBag.YatakId" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hasta Seçiniz</label>
+
+                    <select name="HastaTc" class="form-select form-select-lg" asp-items="ViewBag.Hastalar" required>
+                        <option value="">-- Listeden Hasta Seçin --</option>
+                    </select>
+
+                    <small class="text-muted">Listede olmayan hastalar için önce "Hasta Kayıt" yapmalısınız.</small>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fa-solid fa-check"></i> Kaydı Tamamla
+                    </button>
+                    <a href="/Yatak/Index" class="btn btn-secondary">İptal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+﻿@model List<Hastane.DataAccess.Models.Kasahareketleri>
+
+<div class="container mt-4">
+    <div class="alert alert-success text-center">
+        <h2><i class="fa-solid fa-wallet me-2"></i>Toplam Kasa Bakiyesi: <strong>@ViewBag.ToplamBakiye ₺</strong></h2>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">Kasa Hareketleri (Otomatik)</div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Açıklama</th>
+                        <th>Tür</th>
+                        <th>Tutar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Tarih</td>
+                            <td>@item.Aciklama</td>
+                            <td>
+                                <span class="badge @(item.Turu == "Gelir" ? "bg-success" : "bg-danger")">@item.Turu</span>
+                            </td>
+                            <td class="fw-bold">@item.Tutar ₺</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,105 @@
+﻿@model Hastane.DataAccess.Models.Randevular
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4><i class="fa-solid fa-calendar-plus me-2"></i>Yeni Randevu Oluştur</h4>
+            </div>
+            <div class="card-body">
+
+                @if (ViewBag.Hata != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i> @ViewBag.Hata
+                    </div>
+                }
+
+                <form method="post">
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Hasta TC Kimlik No</label>
+                        <input type="text" name="HastaTc" class="form-control" required placeholder="11111111111" maxlength="11" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Poliklinik Seçiniz</label>
+                            <select id="PoliklinikId" name="PoliklinikId" class="form-select" asp-items="ViewBag.Poliklinikler">
+                                <option value="">-- Lütfen Seçiniz --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Doktor Seçiniz</label>
+                            <select id="DoktorId" name="DoktorId" class="form-select" disabled>
+                                <option value="">-- Önce Poliklinik Seçiniz --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Tarih</label>
+                            <input type="date" name="RandevuTarihi" class="form-control" required
+                                   min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Saat</label>
+                            <input type="time" name="RandevuSaati" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">Randevuyu Kaydet</button>
+                        <a href="/Randevu/Index" class="btn btn-secondary">İptal</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Poliklinik seçimi değiştiğinde çalışır
+            $('#PoliklinikId').change(function () {
+                var poliklinikId = $(this).val();
+                var $doktorSelect = $('#DoktorId');
+
+                // Önce doktor listesini temizle
+                $doktorSelect.empty();
+                $doktorSelect.append('<option value="">-- Doktor Seçiniz --</option>');
+
+                if (poliklinikId) {
+                    // Eğer bir poliklinik seçildiyse AJAX isteği at
+                    $.ajax({
+                        url: '/Randevu/GetDoktorlarByPoliklinik',
+                        type: 'GET',
+                        data: { poliklinikId: poliklinikId },
+                        success: function (data) {
+                            // Gelen doktorları listeye ekle
+                            $.each(data, function (i, item) {
+                                $doktorSelect.append($('<option>', {
+                                    value: item.value,
+                                    text: item.text
+                                }));
+                            });
+                            // Kilidi aç
+                            $doktorSelect.prop('disabled', false);
+                        },
+                        error: function () {
+                            alert('Doktorlar yüklenirken hata oluştu.');
+                        }
+                    });
+                } else {
+                    // Poliklinik seçimi iptal edildiyse doktoru kilitle
+                    $doktorSelect.prop('disabled', true);
+                    $doktorSelect.append('<option value="">-- Önce Poliklinik Seçiniz --</option>');
+                }
+            });
+        });
+    </script>
+}

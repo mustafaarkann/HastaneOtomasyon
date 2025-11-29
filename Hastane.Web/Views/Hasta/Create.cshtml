@@ -1,0 +1,65 @@
+﻿@model Hastane.DataAccess.Models.Hastalar
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4>Yeni Hasta Kaydı</h4>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.Hata != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i> @ViewBag.Hata
+                    </div>
+                }
+                <form method="post">
+                    <div class="mb-3">
+                        <label>TC Kimlik No</label>
+                        <input type="text" name="TcNo" class="form-control" required maxlength="11" />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Ad</label>
+                            <input type="text" name="Ad" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Soyad</label>
+                            <input type="text" name="Soyad" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Telefon</label>
+                        <input type="text" name="Telefon" class="form-control" />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Kan Grubu</label>
+                            <select name="KanGrubu" class="form-select">
+                                <option>A Rh+</option>
+                                <option>B Rh+</option>
+                                <option>0 Rh+</option>
+                                <option>AB Rh+</option>
+                                <option>A Rh-</option>
+                                <option>B Rh-</option>
+                                <option>0 Rh-</option>
+                                <option>AB Rh-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Güvence</label>
+                            <select name="SosyalGuvence" class="form-select">
+                                <option>SGK</option>
+                                <option>Bağkur</option>
+                                <option>Özel Sigorta</option>
+                                <option>Yok</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

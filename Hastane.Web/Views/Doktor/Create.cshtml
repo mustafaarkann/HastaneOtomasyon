@@ -1,0 +1,75 @@
+﻿@model Hastane.DataAccess.Models.Doktorlar
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4><i class="fa-solid fa-user-plus me-2"></i>Yeni Doktor Kaydı</h4>
+            </div>
+            <div class="card-body">
+
+                @if (ViewBag.Hata != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Hata</div>
+                }
+
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>TC Kimlik No</label>
+                            <input type="text" name="TcNo" class="form-control" required maxlength="11" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Diploma No</label>
+                            <input type="text" name="DiplomaNo" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Ad</label>
+                            <input type="text" name="Ad" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Soyad</label>
+                            <input type="text" name="Soyad" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Uzmanlık Alanı</label>
+                        <select name="UzmanlikAlani" class="form-select">
+                            <option>Dahiliye</option>
+                            <option>Kardiyoloji</option>
+                            <option>Göz Hastalıkları</option>
+                            <option>KBB</option>
+                            <option>Nöroloji</option>
+                            <option>Ortopedi</option>
+                            <option>Genel Cerrahi</option>
+                            <option>Acil Servis</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Telefon</label>
+                            <input type="text" name="Telefon" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Cinsiyet</label>
+                            <select name="Cinsiyet" class="form-select">
+                                <option value="E">Erkek</option>
+                                <option value="K">Kadın</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">Doktoru Kaydet</button>
+                        <a href="/Doktor/Index" class="btn btn-secondary">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+﻿@model List<Hastane.DataAccess.Models.Odalar>
+
+<div class="container-fluid">
+    <h2 class="mb-4 text-primary"><i class="fa-solid fa-hospital me-2"></i>Yatak ve Oda Durumu</h2>
+
+    <div class="row">
+        @foreach (var oda in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100 border-top border-4 border-primary">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">ODA @oda.OdaNumarasi</h5>
+                        <span class="badge bg-secondary">Kat: @oda.Kat</span>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="row justify-content-center">
+
+                            @foreach (var yatak in oda.Yataklars.OrderBy(y => y.YatakNo))
+                            {
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 border rounded bg-white">
+                                        <i class="fa-solid fa-bed fa-3x mb-2 @(yatak.DoluMu == true ? "text-danger" : "text-success")"></i>
+
+                                        <h6 class="fw-bold text-dark">@yatak.YatakNo</h6>
+
+                                        @if (yatak.DoluMu == true)
+                                        {
+                                            <a href="/Yatak/TaburcuEt/@yatak.YatakId"
+                                               class="btn btn-danger btn-sm w-100"
+                                               onclick="return confirm('Bu hastayı taburcu etmek ve yatağı boşaltmak istiyor musunuz?');">
+                                                <i class="fa-solid fa-right-from-bracket"></i> TABURCU ET
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/Yatak/YatisVer/@yatak.YatakId" class="btn btn-success btn-sm w-100">
+                                                <i class="fa-solid fa-check"></i> YATIŞ VER
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

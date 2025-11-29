@@ -1,0 +1,91 @@
+﻿@model List<Hastane.DataAccess.Models.Randevular>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Randevu Listesi</h4>
+        <a href="/Randevu/Create" class="btn btn-light text-primary fw-bold">
+            <i class="fa-solid fa-plus"></i> Yeni Randevu
+        </a>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tarih / Saat</th>
+                    <th>Hasta TC</th>
+                    <th>Poliklinik</th>
+                    <th>Doktor ID</th>
+                    <th class="text-center">Durum</th>
+                    <th class="text-center" style="width: 200px;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    // Eğer tamamlandıysa satır biraz soluk (gri) olsun
+                    <tr class="@(item.DurumId == 4 ? "table-secondary text-muted" : "")">
+                        <td>
+                            <i class="fa-regular fa-calendar me-1"></i> @item.RandevuTarihi.ToString("dd.MM.yyyy") <br />
+                            <i class="fa-regular fa-clock me-1"></i> @item.RandevuSaati
+                        </td>
+                        <td>@item.HastaTc</td>
+                        <td>@item.Poliklinik?.PoliklinikAdi</td>
+                        <td>@item.DoktorId</td>
+                        <td class="text-center">
+                            @if (item.DurumId == 1)
+                            {
+                                <span class="badge bg-warning text-dark">Bekliyor</span>
+                            }
+                            else if (item.DurumId == 2)
+                            {
+
+                                <span class="badge bg-success">Onaylandı</span>
+                            }
+                            else if (item.DurumId == 3)
+                            {
+
+                                <span class="badge bg-danger">İptal</span>
+                            }
+                            else if (item.DurumId == 4)
+                            {
+
+                                <span class="badge bg-secondary"><i class="fa-solid fa-check-double"></i> Muayene Bitti</span>
+                            }
+                        </td>
+
+                        <td class="text-center">
+                            @if (item.DurumId == 1) // Bekliyor
+                            {
+                                <div class="btn-group" role="group">
+                                    <a href="/Randevu/Onayla/@item.RandevuId" class="btn btn-sm btn-success" title="Onayla"><i class="fa-solid fa-check"></i></a>
+                                    <a href="/Randevu/Iptal/@item.RandevuId" class="btn btn-sm btn-danger" onclick="return confirm('İptal etmek istiyor musunuz?');"><i class="fa-solid fa-xmark"></i></a>
+                                </div>
+                            }
+                            else if (item.DurumId == 2) // Onaylandı (Muayene Et Butonu Çıksın)
+                            {
+                                <a href="/Muayene/MuayeneEt?randevuId=@item.RandevuId" class="btn btn-sm btn-info text-white">
+                                    <i class="fa-solid fa-stethoscope"></i> Muayene Et
+                                </a>
+                            }
+                            else if (item.DurumId == 4) // Tamamlandı (PASİF)
+                            {
+                                <span class="text-muted small"><i class="fa-solid fa-lock"></i> İşlem Kapalı</span>
+                            }
+                            else // İptal
+                            {
+                                <span class="text-muted small">-</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model.Count == 0)
+        {
+            <div class="alert alert-info mt-3 text-center">
+                Henüz kayıtlı randevu bulunmamaktadır.
+            </div>
+        }
+    </div>
+</div>

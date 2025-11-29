@@ -1,0 +1,61 @@
+﻿@model Hastane.DataAccess.Models.Muayeneler
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h4><i class="fa-solid fa-stethoscope me-2"></i>Muayene İşlemi</h4>
+        </div>
+        <div class="card-body">
+
+            @if (ViewBag.Hata != null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> @ViewBag.Hata
+                </div>
+            }
+
+            <form method="post">
+                <input type="hidden" name="RandevuId" value="@ViewBag.RandevuId" />
+
+                <div class="mb-3">
+                    <label class="fw-bold">Teşhis / Tanı</label>
+                    <textarea asp-for="Teshis" class="form-control" rows="3" required placeholder="Hastanın şikayeti ve konulan tanı..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold">Doktor Notu / Reçete</label>
+                    <textarea asp-for="DoktorNotu" class="form-control" rows="3" placeholder="İlaçlar ve notlar..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold d-block">Uygulanan İşlemler (Ücretli)</label>
+                    <div class="row">
+                        @if (ViewBag.Islemler != null)
+                        {
+                            @foreach (var islem in ViewBag.Islemler as List<Hastane.DataAccess.Models.Islemler>)
+                            {
+                                <div class="col-md-4">
+                                    <div class="form-check p-3 border rounded mb-2">
+                                        <input class="form-check-input" type="checkbox" name="secilenIslemler" value="@islem.IslemId" id="islem_@islem.IslemId">
+                                        <label class="form-check-label w-100" for="islem_@islem.IslemId">
+                                            @islem.IslemAdi
+                                            <span class="badge bg-success float-end">@islem.Ucret ₺</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-muted">Görüntülenecek işlem bulunamadı.</div>
+                        }
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 btn-lg">
+                    <i class="fa-solid fa-check-double me-2"></i> Muayeneyi Tamamla ve Kaydet
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,63 @@
+﻿@model List<Hastane.DataAccess.Models.Doktorlar>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fa-solid fa-user-doctor me-2"></i>Doktor Listesi</h4>
+        <a href="/Doktor/Create" class="btn btn-light text-primary fw-bold">
+            <i class="fa-solid fa-plus"></i> Yeni Doktor Ekle
+        </a>
+    </div>
+
+    <div class="p-3 bg-light border-bottom">
+        <form method="get" action="/Doktor/Index">
+            <div class="input-group">
+                <input type="text" name="p" class="form-control" placeholder="Doktor Adı veya Soyadı ara..." />
+                <button class="btn btn-primary" type="submit">
+                    <i class="fa-solid fa-magnifying-glass"></i> Ara
+                </button>
+                <a href="/Doktor/Index" class="btn btn-secondary" title="Listeyi Sıfırla">
+                    <i class="fa-solid fa-rotate-left"></i> Sıfırla
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>TC No</th>
+                    <th>Ad Soyad</th>
+                    <th>Uzmanlık Alanı</th>
+                    <th>Diploma No</th>
+                    <th>Telefon</th>
+                    <th class="text-center" style="width: 150px;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.TcNo</td>
+                        <td>@item.Ad @item.Soyad</td>
+                        <td><span class="badge bg-info text-dark">@item.UzmanlikAlani</span></td>
+                        <td>@item.DiplomaNo</td>
+                        <td>@item.Telefon</td>
+                        <td class="text-center">
+                            <a href="/Doktor/Edit/@item.KisiId" class="btn btn-sm btn-warning text-dark">
+                                <i class="fa-solid fa-pen-to-square"></i> Düzenle
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model.Count == 0)
+        {
+            <div class="alert alert-info text-center mt-3">
+                Aradığınız kriterlere uygun doktor bulunamadı veya sistemde kayıtlı doktor yok.
+            </div>
+        }
+    </div>
+</div>

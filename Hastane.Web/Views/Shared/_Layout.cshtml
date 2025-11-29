@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hastane Otomasyonu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wrapper {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+            flex: 1;
+        }
+
+        #sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #343a40;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+            #sidebar .sidebar-header {
+                padding: 20px;
+                background: #343a40;
+                border-bottom: 1px solid #4b545c;
+            }
+
+            #sidebar ul.components {
+                padding: 20px 0;
+            }
+
+            #sidebar ul li a {
+                padding: 10px 20px;
+                font-size: 1.1em;
+                display: block;
+                color: #fff;
+                text-decoration: none;
+            }
+
+                #sidebar ul li a:hover {
+                    color: #343a40;
+                    background: #fff;
+                }
+
+        #content {
+            width: 100%;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .active-link {
+            background: #fff;
+            color: #343a40 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Index"><i class="fa-solid fa-hospital-user me-2"></i>Hastane Otomasyonu</a>
+            <div class="d-flex text-white align-items-center">
+                <span class="me-3"><i class="fa-solid fa-user me-1"></i> @User.Identity.Name</span>
+                <a href="/Account/Logout" class="btn btn-danger btn-sm">Çıkış Yap</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        <nav id="sidebar">
+            <ul class="list-unstyled components">
+
+                <li>
+                    <a href="/Home/Index" class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Home" ? "active-link" : "")">
+                        <i class="fa-solid fa-house me-2"></i>Ana Sayfa
+                    </a>
+                </li>
+
+                @if (User.IsInRole("Sekreter"))
+                {
+                    <li>
+                        <a href="/Randevu/Index" class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Randevu" ? "active-link" : "")">
+                            <i class="fa-solid fa-calendar-check me-2"></i>Randevu Yönetimi
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Muayene/Kasa" class="@(ViewContext.RouteData.Values["Action"].ToString() == "Kasa" ? "active-link" : "")">
+                            <i class="fa-solid fa-wallet me-2"></i>Kasa Raporu
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Yatak/Index" class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Yatak" ? "active-link" : "")">
+                            <i class="fa-solid fa-bed me-2"></i>Yatak/Oda Durumu
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Hasta/Index" class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Hasta" ? "active-link" : "")">
+                            <i class="fa-solid fa-users me-2"></i>Hasta İşlemleri
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Doktor/Index" class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Doktor" ? "active-link" : "")">
+                            <i class="fa-solid fa-user-doctor me-2"></i>Doktorlar
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Doktor"))
+                {
+                    <li>
+                        <a href="/Randevu/Index"><i class="fa-solid fa-list-check me-2"></i>Randevularım</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa-solid fa-file-medical me-2"></i>Muayene Geçmişi</a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Hasta"))
+                {
+                    <li>
+                        <a href="/Randevu/Create"><i class="fa-solid fa-plus-circle me-2"></i>Randevu Al</a>
+                    </li>
+                    <li>
+                        <a href="/Randevu/Index"><i class="fa-solid fa-history me-2"></i>Geçmiş Randevularım</a>
+                    </li>
+                }
+
+            </ul>
+        </nav>
+
+        <div id="content">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
